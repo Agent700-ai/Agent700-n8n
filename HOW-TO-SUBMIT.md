@@ -122,7 +122,7 @@ You need to make the following changes to `Agent700-prod-nodes/package.json`:
    {
      "repository": {
        "type": "git",
-       "url": "https://github.com/your-org/agent700-n8n-nodes.git"
+       "url": "https://github.com/Agent700-ai/Agent700-n8n.git"
      }
    }
    ```
