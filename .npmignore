@@ -1,0 +1,45 @@
+# Source files (dist/ is used)
+src/
+
+# Tests
+tests/
+__tests__/
+*.test.ts
+*.spec.ts
+
+# Config files
+.env
+.env.*
+!.env.example
+tsconfig.json
+jest.config.js
+.eslintrc.json
+.eslintrc.js
+
+# Internal documentation
+HOW-TO-SUBMIT.md
+MIGRATION_GUIDE.md
+
+# Junk files
+Untitled
+
+# Development
+node_modules/
+coverage/
+.nyc_output/
+*.log
+*.tgz
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Git
+.git/
+.gitignore

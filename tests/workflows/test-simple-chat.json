@@ -1,0 +1,50 @@
+{
+  "name": "Test Simple Chat",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "manual-trigger",
+      "name": "Manual Trigger",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [250, 300]
+    },
+    {
+      "parameters": {
+        "baseUrl": "https://api.agent700.ai",
+        "appPassword": "YOUR_APP_PASSWORD",
+        "resource": "chat",
+        "operation": "sendMessage",
+        "agentId": "YOUR_AGENT_UUID",
+        "message": "What is artificial intelligence?",
+        "simplify": true
+      },
+      "id": "agent700-chat",
+      "name": "Agent700 Chat",
+      "type": "agent700Agent",
+      "typeVersion": 2,
+      "position": [450, 300],
+      "credentials": {
+        "agent700AppPasswordApi": {
+          "id": "YOUR_CREDENTIAL_ID",
+          "name": "Agent700 App Password API"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Manual Trigger": {
+      "main": [[{ "node": "Agent700 Chat", "type": "main", "index": 0 }]]
+    }
+  },
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": [],
+  "triggerCount": 0,
+  "updatedAt": "2024-01-01T00:00:00.000Z",
+  "versionId": "1"
+}
+

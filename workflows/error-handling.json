@@ -1,0 +1,104 @@
+{
+  "name": "Agent700 Error Handling",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "manual-trigger",
+      "name": "Manual Trigger",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [250, 300]
+    },
+    {
+      "parameters": {
+        "resource": "chat",
+        "operation": "sendMessage",
+        "agentId": {
+          "mode": "id",
+          "value": "YOUR_AGENT_UUID"
+        },
+        "message": "Test message",
+        "simplify": true,
+        "continueOnFail": true
+      },
+      "id": "agent700-chat",
+      "name": "Agent700 Chat",
+      "type": "agent700Agent",
+      "typeVersion": 2,
+      "position": [450, 300],
+      "credentials": {
+        "agent700AppPasswordApi": {
+          "id": "YOUR_CREDENTIAL_ID",
+          "name": "Agent700 App Password API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{$json.error}}",
+              "operation": "isNotEmpty"
+            }
+          ]
+        }
+      },
+      "id": "error-handler",
+      "name": "Error Handler",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [650, 300]
+    },
+    {
+      "parameters": {
+        "amount": 3,
+        "unit": "seconds"
+      },
+      "id": "wait-retry",
+      "name": "Wait Before Retry",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1,
+      "position": [850, 400]
+    },
+    {
+      "parameters": {
+        "fallbackResponse": "Service temporarily unavailable. Please try again later."
+      },
+      "id": "fallback",
+      "name": "Fallback Response",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 1,
+      "position": [1050, 400]
+    }
+  ],
+  "connections": {
+    "Manual Trigger": {
+      "main": [[{ "node": "Agent700 Chat", "type": "main", "index": 0 }]]
+    },
+    "Agent700 Chat": {
+      "main": [[{ "node": "Error Handler", "type": "main", "index": 0 }]]
+    },
+    "Error Handler": {
+      "main": [
+        [],
+        [[{ "node": "Wait Before Retry", "type": "main", "index": 0 }]]
+      ]
+    },
+    "Wait Before Retry": {
+      "main": [[{ "node": "Fallback Response", "type": "main", "index": 0 }]]
+    }
+  },
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": [],
+  "triggerCount": 0,
+  "updatedAt": "2024-01-01T00:00:00.000Z",
+  "versionId": "1"
+}
+
+
+

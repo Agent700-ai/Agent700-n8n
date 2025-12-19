@@ -1,0 +1,123 @@
+{
+  "name": "Agent700 Batch Processing",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "manual-trigger",
+      "name": "Manual Trigger",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [250, 300]
+    },
+    {
+      "parameters": {
+        "resource": "entry",
+        "operation": "getMany"
+      },
+      "id": "get-items",
+      "name": "Get Items",
+      "type": "agent700ContextLibrary",
+      "typeVersion": 3,
+      "position": [450, 300],
+      "credentials": {
+        "agent700AppPasswordApi": {
+          "id": "YOUR_CREDENTIAL_ID",
+          "name": "Agent700 App Password API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "batchSize": 5
+      },
+      "id": "split-batch",
+      "name": "Split in Batches",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 1,
+      "position": [650, 300]
+    },
+    {
+      "parameters": {
+        "resource": "chat",
+        "operation": "sendMessage",
+        "agentId": {
+          "mode": "id",
+          "value": "YOUR_AGENT_UUID"
+        },
+        "message": "Process this item: {{JSON.stringify($json)}}",
+        "simplify": true,
+        "continueOnFail": true
+      },
+      "id": "process-item",
+      "name": "Process Item",
+      "type": "agent700Agent",
+      "typeVersion": 2,
+      "position": [850, 300],
+      "credentials": {
+        "agent700AppPasswordApi": {
+          "id": "YOUR_CREDENTIAL_ID",
+          "name": "Agent700 App Password API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "destinationFieldName": "results"
+      },
+      "id": "aggregate",
+      "name": "Aggregate Results",
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [1050, 300]
+    },
+    {
+      "parameters": {
+        "resource": "entry",
+        "operation": "upsert",
+        "key": "batch_results",
+        "value": "={{JSON.stringify($json.results)}}"
+      },
+      "id": "save-results",
+      "name": "Save Results",
+      "type": "agent700ContextLibrary",
+      "typeVersion": 3,
+      "position": [1250, 300],
+      "credentials": {
+        "agent700AppPasswordApi": {
+          "id": "YOUR_CREDENTIAL_ID",
+          "name": "Agent700 App Password API"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Manual Trigger": {
+      "main": [[{ "node": "Get Items", "type": "main", "index": 0 }]]
+    },
+    "Get Items": {
+      "main": [[{ "node": "Split in Batches", "type": "main", "index": 0 }]]
+    },
+    "Split in Batches": {
+      "main": [[{ "node": "Process Item", "type": "main", "index": 0 }]]
+    },
+    "Process Item": {
+      "main": [[{ "node": "Aggregate Results", "type": "main", "index": 0 }]]
+    },
+    "Aggregate Results": {
+      "main": [[{ "node": "Save Results", "type": "main", "index": 0 }]]
+    }
+  },
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": [],
+  "triggerCount": 0,
+  "updatedAt": "2024-01-01T00:00:00.000Z",
+  "versionId": "1"
+}
+
+
+
