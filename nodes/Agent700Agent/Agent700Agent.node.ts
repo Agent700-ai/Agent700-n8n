@@ -176,7 +176,7 @@ export class Agent700Agent implements INodeType {
 						out = res as IDataObject;
 					}
 
-					returnData.push({ json: out });
+					returnData.push({ json: out, pairedItem: { item: i } });
 				} else {
 					throw new NodeApiError(this.getNode(), {
 						message: `[Item ${i + 1}] Unsupported selection. Check resource/operation.`,
@@ -191,12 +191,13 @@ export class Agent700Agent implements INodeType {
 							: error instanceof Error
 								? error.message
 								: String(error);
-					returnData.push({
-						json: {
-							error: errorMessage,
-							itemIndex: i + 1,
-						},
-					});
+				returnData.push({
+					json: {
+						error: errorMessage,
+						itemIndex: i + 1,
+					},
+					pairedItem: { item: i },
+				});
 					continue;
 				}
 

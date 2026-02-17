@@ -280,6 +280,26 @@ Create a comprehensive `README.md` in your package root with:
 
 ## 5. Build & Test Process
 
+### Run before submitting
+
+Run this single command locally before submitting a PR or publishing to the Creator Portal:
+
+```bash
+npm run check
+```
+
+This runs **build → lint → test** in sequence and stops on the first failure. It satisfies the TDD rule: do not merge code without passing all tests (see `.cursor/rules/tdd.mdc`).
+
+For full TDD compliance (including coverage thresholds), run:
+
+```bash
+npm run check:ci
+```
+
+This adds coverage enforcement (80% branches/functions/lines/statements) per the project's Code Coverage and Quality Gates rules.
+
+> **Note:** For non-trivial changes, the project's SDD rules (`.cursor/rules/sdd/RULE.md`) also require a spec and referencing it in the PR. See those rules for the full pre-submit checklist.
+
 ### 5.1 Build Your Package
 
 ```bash
@@ -324,9 +344,8 @@ n8n start
 
 Run this complete checklist before submitting:
 
-- [ ] Package builds without errors
-- [ ] Linting passes (`npm run lint`)
-- [ ] All tests pass (if applicable)
+- [ ] **Run `npm run check`** (build, lint, test) and fix any failures
+- [ ] For full TDD compliance (including coverage thresholds), run `npm run check:ci`
 - [ ] Nodes work in local n8n instance
 - [ ] README.md is complete
 - [ ] Package name follows convention
@@ -602,8 +621,8 @@ Before submitting, ensure:
 - [ ] Version is set correctly
 
 **Code Quality**:
-- [ ] Linting passes (`npm run lint`)
-- [ ] All tests pass (if applicable)
+- [ ] **Run `npm run check`** (build, lint, test) and fix any failures
+- [ ] For full TDD compliance (including coverage thresholds), run `npm run check:ci`
 - [ ] Error handling is proper
 - [ ] Node descriptions are complete
 
@@ -614,7 +633,6 @@ Before submitting, ensure:
 - [ ] Example workflows provided
 
 **Testing**:
-- [ ] Package builds successfully
 - [ ] Nodes work in local n8n instance
 - [ ] All operations tested
 - [ ] Error cases handled

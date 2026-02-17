@@ -213,12 +213,12 @@ export class Agent700ContextLibrary implements INodeType {
 							message: `[Item ${i + 1}] Entry:Get — 'Key' is required. How to solve: Provide a key to retrieve.`,
 						});
 					}
-					const res = await api('GET', `/api/alignment-data/by-key/${encodeURIComponent(key)}`);
-					returnData.push({ json: res as IDataObject });
+				const res = await api('GET', `/api/alignment-data/by-key/${encodeURIComponent(key)}`);
+				returnData.push({ json: res as IDataObject, pairedItem: { item: i } });
 				} else if (operation === 'getMany') {
-					const res = await api('GET', `/api/alignment-data`);
-					if (Array.isArray(res)) returnData.push(...res.map((r: IDataObject) => ({ json: r })));
-					else returnData.push({ json: res as IDataObject });
+				const res = await api('GET', `/api/alignment-data`);
+				if (Array.isArray(res)) returnData.push(...res.map((r: IDataObject) => ({ json: r, pairedItem: { item: i } })));
+				else returnData.push({ json: res as IDataObject, pairedItem: { item: i } });
 				} else if (operation === 'create') {
 					const key = this.getNodeParameter('key', i) as string;
 					const value = this.getNodeParameter('value', i) as IDataObject;
@@ -227,9 +227,9 @@ export class Agent700ContextLibrary implements INodeType {
 							message: `[Item ${i + 1}] Entry:Create — 'Key' is required. How to solve: Provide a key for the new entry.`,
 						});
 					}
-					const res = await api('POST', `/api/alignment-data`, { key, value });
-					returnData.push({ json: res as IDataObject });
-				} else if (operation === 'update') {
+				const res = await api('POST', `/api/alignment-data`, { key, value });
+				returnData.push({ json: res as IDataObject, pairedItem: { item: i } });
+			} else if (operation === 'update') {
 					const key = this.getNodeParameter('key', i) as string;
 					const value = this.getNodeParameter('value', i) as IDataObject;
 					const newKey = this.getNodeParameter('newKey', i) as string;
@@ -240,8 +240,8 @@ export class Agent700ContextLibrary implements INodeType {
 					}
 					const body: IDataObject = { key, value };
 					if (newKey) body.newKey = newKey;
-					const res = await api('PUT', `/api/alignment-data`, body);
-					returnData.push({ json: res as IDataObject });
+				const res = await api('PUT', `/api/alignment-data`, body);
+				returnData.push({ json: res as IDataObject, pairedItem: { item: i } });
 				} else if (operation === 'upsert') {
 					const key = this.getNodeParameter('key', i) as string;
 					const value = this.getNodeParameter('value', i) as IDataObject;
@@ -250,17 +250,17 @@ export class Agent700ContextLibrary implements INodeType {
 							message: `[Item ${i + 1}] Entry:Upsert — 'Key' is required. How to solve: Provide a key for the entry.`,
 						});
 					}
-					const res = await api('POST', `/api/alignment-data`, { key, value });
-					returnData.push({ json: res as IDataObject });
-				} else if (operation === 'delete') {
+				const res = await api('POST', `/api/alignment-data`, { key, value });
+				returnData.push({ json: res as IDataObject, pairedItem: { item: i } });
+			} else if (operation === 'delete') {
 					const key = this.getNodeParameter('key', i) as string;
 					if (!key) {
 						throw new NodeApiError(this.getNode(), {
 							message: `[Item ${i + 1}] Entry:Delete — 'Key' is required. How to solve: Provide the key of the entry to delete.`,
 						});
 					}
-					await api('DELETE', `/api/alignment-data/${encodeURIComponent(key)}`);
-					returnData.push({ json: { deleted: true, key } });
+				await api('DELETE', `/api/alignment-data/${encodeURIComponent(key)}`);
+				returnData.push({ json: { deleted: true, key }, pairedItem: { item: i } });
 				} else if (operation === 'query') {
 					const pattern = this.getNodeParameter('pattern', i) as string;
 					if (!pattern) {
@@ -269,7 +269,7 @@ export class Agent700ContextLibrary implements INodeType {
 						});
 					}
 					const res = await api('GET', `/api/alignment-data/by-pattern/${encodeURIComponent(pattern)}`);
-					returnData.push({ json: { pattern, result: res } });
+					returnData.push({ json: { pattern, result: res }, pairedItem: { item: i } });
 				} else if (operation === 'queryConstruct') {
 					const pattern = this.getNodeParameter('pattern', i) as string;
 					const template = this.getNodeParameter('template', i) as string;
@@ -284,9 +284,9 @@ export class Agent700ContextLibrary implements INodeType {
 							template,
 						)}`,
 					);
-					if (Array.isArray(res)) returnData.push(...res.map((r: IDataObject) => ({ json: r })));
-					else returnData.push({ json: res as IDataObject });
-				} else {
+				if (Array.isArray(res)) returnData.push(...res.map((r: IDataObject) => ({ json: r, pairedItem: { item: i } })));
+				else returnData.push({ json: res as IDataObject, pairedItem: { item: i } });
+			} else {
 					throw new NodeApiError(this.getNode(), {
 						message: `[Item ${i + 1}] Entry:${operation} — Unsupported operation. How to solve: Select a valid operation from the list.`,
 					});
@@ -300,13 +300,14 @@ export class Agent700ContextLibrary implements INodeType {
 							: error instanceof Error
 								? error.message
 								: String(error);
-					returnData.push({
-						json: {
-							error: errorMessage,
-							itemIndex: i + 1,
-							operation: this.getNodeParameter('operation', i),
-						},
-					});
+				returnData.push({
+					json: {
+						error: errorMessage,
+						itemIndex: i + 1,
+						operation: this.getNodeParameter('operation', i),
+					},
+					pairedItem: { item: i },
+				});
 					continue;
 				}
 

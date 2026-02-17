@@ -1,0 +1,214 @@
+---
+description: SDD + TDD Integration for AI-Assisted Development with Cursor
+alwaysApply: true
+---
+
+# SDD + TDD Integration for AI-Assisted Development with Cursor
+
+## Rule 1: Specification-First for Non-Trivial Changes
+
+## The Law
+
+1. Never write production code without a failing test
+2. Write only enough test code to fail
+3. Write only enough production code to pass
+
+**When This Applies:**
+- New features, workflows, or APIs
+- Behavior changes affecting users, data, or other systems
+- Changes requiring more than a few lines of code or involving uncertainty
+- Edge cases and boundary conditions
+- Error handling and failure modes
+- State transitions
+
+**When to Skip:**
+- Minor copy changes
+- Obvious one-line fixes
+- Dependency updates with no behavior changes
+
+**Hotfix Exception:**
+- Implement first if urgent (critical production issue)
+- Create specification within 24 hours
+- Document in the spec why this was necessary
+
+**Minimum Viable Spec (must be complete before coding):**
+- Problem & Motivation: What are we solving and why?
+- Goals: What success looks like
+- Non-Goals: What's explicitly out of scope
+- At least one P1 Functional Requirement
+- At least one Acceptance Criterion in Given/When/Then format
+
+## Testing Pyramid
+
+- **70% Unit Tests**: Isolated, fast, cover all logic branches
+- **20% Integration Tests**: Component interactions, API contracts
+- **10% E2E Tests**: Critical user paths only
+
+## Test Quality Rules
+
+- One behavior per test
+- Tests must be independent and deterministic
+- No test should depend on another test's state
+- Unit tests must run fast (< 100ms each)
+- Mock at system boundaries, not internal implementation
+- Test behavior, not implementation details
+
+## Red-Green-Refactor Cycle
+
+### RED
+- Reference the spec for the requirement being implemented
+- Write a test that describes the expected behavior
+- Run the test and confirm it fails for the correct reason
+
+### GREEN
+- Write the minimal code to make the test pass
+- No extra features, no premature optimization
+- Run the test and confirm it passes
+
+### REFACTOR
+- Improve code structure while keeping tests green
+- Remove duplication, clarify intent
+- Run tests after each change
+
+**Your Role:**
+- Ask clarifying questions until you can draft the spec
+- Reference existing code and architecture in the spec
+- Mark unclear items with `[NEEDS CLARIFICATION: reason]`
+- Wait for approval before writing implementation code
+- If you discover gaps during implementation, pause and update spec with the user
+
+---
+
+## Rule 2: Test-Driven Development Workflow
+
+**Your Process (in order):**
+
+1. **Read & Translate:** Study the approved specification. Convert each acceptance criterion into one or more test cases.
+
+2. **Ask Questions:** If any acceptance criteria are ambiguous or untestable, ask for clarification before writing tests.
+
+3. **Write Tests First:** Write tests that validate the specification without implementing the feature. Tests should fail initially.
+
+4. **Confirm Tests Fail:** Run tests and verify they fail with clear error messages explaining what functionality is missing.
+
+5. **Implement Code:** Write code to pass the tests. Do NOT modify tests unless you have a justified reason—if you need to change a test, document why and confirm with the user.
+
+6. **Iterate:** Run tests after each change. Keep iterating until all tests pass.
+
+7. **Final Verification:** Run all tests one more time to ensure everything works together.
+
+**Test Quality Standards:**
+- **Independence:** Tests should not depend on each other. They should be runnable in any order.
+- **Repeatability:** Tests should produce the same results every time they run.
+- **Behavior over Implementation:** Test what the code should do, not how it does it. Avoid testing private implementation details.
+- **Test Doubles:** Use mocks and stubs appropriately to isolate units under test. Mock external dependencies, but test real behavior of code you own.
+- **Testing Pyramid:** Write many unit tests (~70%), fewer integration tests (~20%), few end-to-end tests (~10%).
+
+**Example Workflow:**
+- When given a specification for a user registration feature with acceptance criteria like "Given a user submits the registration form with valid data, When they submit, Then they receive a confirmation email," you should:
+1. Write a test that calls the registration function with valid data and asserts that an email is sent
+2. Write a test that calls registration with invalid data and asserts it rejects the request
+3. Write an integration test that verifies the email system receives the correct message
+4. Implement the registration code to make these tests pass
+
+---
+
+## Rule 3: Code Coverage and Quality Gates
+
+**Minimum Coverage Requirements:**
+- Unit test coverage: 70-80% of critical paths
+- Integration test coverage: All component interactions described in spec
+- End-to-end coverage: All critical user flows
+
+**Code Coverage is Not Enough:**
+- Coverage percentage is not the goal; testing critical paths is
+- Edge cases identified in the specification must be tested
+- Error scenarios must be tested (negative test cases)
+
+**Your Quality Validation:**
+- After implementation passes all tests, review the code for:
+  - Security vulnerabilities (input validation, authorization, secrets management)
+  - Performance issues (inefficient algorithms, N+1 queries, unnecessary allocations)
+  - Code complexity (functions should be small and focused)
+  - Architectural consistency (follows established patterns in the codebase)
+
+**If Issues Found:**
+- Flag them explicitly with the user
+- Suggest fixes or ask for guidance
+- Do not merge code that fails quality criteria
+
+---
+
+## Rule 4: Specification as Living Documentation
+
+**During Development:**
+- If implementation reveals gaps or inconsistencies in the specification, pause and update the specification
+- The specification should always reflect intended behavior
+- If you must deviate from the specification, document the reason and get approval
+
+**After Implementation:**
+- Verify all acceptance criteria pass
+- Confirm success criteria are measurable (instrumented for observability if needed)
+- Update the specification if final behavior differs from original
+
+**Version Control:**
+- Save specifications to `/docs/specs/YYYY-MM-DD-feature-name.md`
+- Commit specifications with the feature branch
+- Reference the specification path in pull request descriptions
+- Add a comment linking to the specification in the primary file modified
+
+**When Removing Features:**
+- Archive the specification to `/docs/specs/archive/` rather than deleting
+- This creates a historical record of why the feature existed
+
+---
+
+## Rule 5: Communication and Clarity
+
+**Always:**
+- Ask clarifying questions when requirements are ambiguous
+- Call out missing goals, non-goals, acceptance criteria, or vague requirements
+- Mark items needing clarification explicitly rather than assuming answers
+- Reference rather than duplicate project-level docs (link to architecture.md, etc.)
+
+**Never:**
+- Invent solutions to unclear requirements
+- Implement features without acceptance criteria
+- Skip testing because "this is too simple"
+- Merge code without passing all tests
+
+## Legacy Code Protocol
+
+When adding tests to existing code:
+1. Write characterization tests to capture current behavior
+2. Ensure characterization tests pass
+3. Refactor with safety net in place
+4. Add new tests for new behavior
+
+## Anti-Patterns to Prevent
+
+- Writing implementation before tests
+- Skipping tests for "simple" code
+- Tests that know too much about implementation
+- Commented-out or skipped tests without explanation
+- Tests that pass when they should fail
+- Shared mutable state between tests
+
+## Completion Checklist
+
+- [ ] Every spec requirement has a corresponding test
+- [ ] All tests pass
+- [ ] Edge cases are covered
+- [ ] Error conditions are tested
+- [ ] No skipped tests without documented reason
+- [ ] Tests are readable and self-documenting
+- [ ] Refactoring complete with green tests
+
+## Progress Reporting
+
+When implementing, state:
+1. "Testing: [requirement from spec]"
+2. "Red: Test fails because [reason]"
+3. "Green: Implemented [solution]"
+4. "Refactor: [improvement made]"
+5. "Complete: [X] tests passing, [Y]% coverage"

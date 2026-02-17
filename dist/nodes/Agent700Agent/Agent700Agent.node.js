@@ -148,7 +148,7 @@ class Agent700Agent {
                     else {
                         out = res;
                     }
-                    returnData.push({ json: out });
+                    returnData.push({ json: out, pairedItem: { item: i } });
                 }
                 else {
                     throw new n8n_workflow_1.NodeApiError(this.getNode(), {
@@ -168,6 +168,7 @@ class Agent700Agent {
                             error: errorMessage,
                             itemIndex: i + 1,
                         },
+                        pairedItem: { item: i },
                     });
                     continue;
                 }
