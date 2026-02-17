@@ -28,7 +28,7 @@ Your package **must** follow one of these naming patterns:
 - **Scoped**: `@<scope>/n8n-nodes-<your-name>`
   - Example: `@agent700/n8n-nodes-agent700`
 
-**Current Status**: Your package is named `agent700-prod-nodes`, which **needs to be changed** to follow the convention above.
+**Current Status**: ✅ Package is named `@a700/n8n-nodes-agent700` (scoped convention).
 
 ### 1.2 Required Keywords
 
@@ -44,7 +44,7 @@ Your `package.json` **must** include the keyword `n8n-community-node-package`:
 }
 ```
 
-**Current Status**: You have `n8n-community-node` but need `n8n-community-node-package`.
+**Current Status**: ✅ Keyword `n8n-community-node-package` is present.
 
 ### 1.3 Account Setup
 

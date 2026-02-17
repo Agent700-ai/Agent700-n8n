@@ -13,25 +13,37 @@ Production-ready custom n8n nodes for integrating with the Agent700 API. These n
 
 ## Installation
 
+### Install from npm (recommended for production)
+
+Install the package in your n8n instance (or in your n8n project if using embedded nodes):
+
+```bash
+npm install @a700/n8n-nodes-agent700
+```
+
+- **Package:** [@a700/n8n-nodes-agent700](https://www.npmjs.com/package/@a700/n8n-nodes-agent700)
+- Restart n8n after installing. The nodes appear as **Agent700 Agent** and **Agent700 Context Library**.
+
 ### Prerequisites
 
 - n8n installed and running
 - Node.js 18+ and npm
 - Agent700 account credentials
 
-### Build the Package
+### Build from source (optional)
 
-First, build the package from source:
+To build and run from the repository:
 
 ```bash
-cd Agent700-prod-nodes
+git clone https://github.com/Agent700-ai/Agent700-n8n.git
+cd Agent700-n8n
 npm install
 npm run build
 ```
 
 This compiles TypeScript to JavaScript in the `dist/` folder.
 
-### Manual Installation Methods
+### Manual installation (Docker / custom path)
 
 Choose the installation method that matches your n8n setup:
 
@@ -45,7 +57,7 @@ If you're using Docker Compose, you have two options:
    ```yaml
    volumes:
      - ./n8n-data:/home/node/.n8n/data
-     - ./Agent700-prod-nodes:/home/node/.n8n/custom/Agent700-prod-nodes
+     - ./Agent700-n8n:/home/node/.n8n/custom/Agent700-n8n
    ```
 
 2. Restart your containers:
@@ -56,7 +68,7 @@ If you're using Docker Compose, you have two options:
 
 3. Install dependencies inside the container:
    ```bash
-   docker exec <CONTAINER_NAME> sh -c "cd /home/node/.n8n/custom/Agent700-prod-nodes && npm install --production"
+   docker exec <CONTAINER_NAME> sh -c "cd /home/node/.n8n/custom/Agent700-n8n && npm install --production"
    ```
 
 **Option B: Copy into Container**
@@ -68,12 +80,12 @@ If you're using Docker Compose, you have two options:
 
 2. Copy the built package into the container:
    ```bash
-   docker cp Agent700-prod-nodes <CONTAINER_NAME>:/home/node/.n8n/custom/
+   docker cp Agent700-n8n <CONTAINER_NAME>:/home/node/.n8n/custom/
    ```
 
 3. Install dependencies inside container:
    ```bash
-   docker exec <CONTAINER_NAME> sh -c "cd /home/node/.n8n/custom/Agent700-prod-nodes && npm install --production"
+   docker exec <CONTAINER_NAME> sh -c "cd /home/node/.n8n/custom/Agent700-n8n && npm install --production"
    ```
 
 4. Restart container:
@@ -88,10 +100,10 @@ If you have n8n installed locally (not in Docker):
 1. Copy to n8n custom directory:
    ```bash
    # Find your n8n custom directory (usually ~/.n8n/custom)
-   cp -r Agent700-prod-nodes ~/.n8n/custom/
+   cp -r Agent700-n8n ~/.n8n/custom/
    
    # Install production dependencies
-   cd ~/.n8n/custom/Agent700-prod-nodes
+   cd ~/.n8n/custom/Agent700-n8n
    npm install --production
    ```
 
@@ -115,7 +127,7 @@ For active development with hot reloading:
 
 1. Build and link your package:
    ```bash
-   cd Agent700-prod-nodes
+   cd Agent700-n8n
    npm install
    npm run build
    npm link
@@ -125,11 +137,11 @@ For active development with hot reloading:
    ```bash
    # If n8n is installed globally
    cd $(npm root -g)/n8n
-   npm link agent700-prod-nodes
+   npm link @a700/n8n-nodes-agent700
    
    # Or if n8n is in a specific directory
    cd /path/to/n8n
-   npm link agent700-prod-nodes
+   npm link @a700/n8n-nodes-agent700
    ```
 
 3. Restart n8n
@@ -167,7 +179,7 @@ After installation, verify everything works:
 
 **Dependencies missing:**
 - Run `npm install --production` in the custom nodes directory
-- For Docker: `docker exec <CONTAINER> sh -c "cd /home/node/.n8n/custom/Agent700-prod-nodes && npm install --production"`
+- For Docker: `docker exec <CONTAINER> sh -c "cd /home/node/.n8n/custom/Agent700-n8n && npm install --production"`
 
 **Build errors:**
 - Ensure TypeScript is installed: `npm install`
