@@ -19,7 +19,7 @@ export interface HttpRequestMockOptions {
   returnFullResponse?: boolean;
 }
 
-export function createMockExecuteFunctions(options: MockExecuteFunctionsOptions = {}): Partial<IExecuteFunctions> & { helpers: { httpRequest: jest.Mock } } {
+export function createMockExecuteFunctions(options: MockExecuteFunctionsOptions = {}): Partial<IExecuteFunctions> & { helpers: { httpRequest: jest.Mock; httpRequestWithAuthentication: jest.Mock } } {
   const {
     parameters = {},
     credentials = {},
@@ -28,8 +28,8 @@ export function createMockExecuteFunctions(options: MockExecuteFunctionsOptions 
     continueOnFail = false,
   } = options;
 
-  // Create mock httpRequest function
   const mockHttpRequest = jest.fn();
+  const mockHttpRequestWithAuthentication = jest.fn();
 
   return {
     getNodeParameter: (name: string, itemIndex: number = 0) => {
@@ -55,8 +55,9 @@ export function createMockExecuteFunctions(options: MockExecuteFunctionsOptions 
     }),
     helpers: {
       httpRequest: mockHttpRequest,
+      httpRequestWithAuthentication: mockHttpRequestWithAuthentication,
     },
-  } as Partial<IExecuteFunctions> & { helpers: { httpRequest: jest.Mock } };
+  } as Partial<IExecuteFunctions> & { helpers: { httpRequest: jest.Mock; httpRequestWithAuthentication: jest.Mock } };
 }
 
 // Helper function to create mock responses for httpRequest

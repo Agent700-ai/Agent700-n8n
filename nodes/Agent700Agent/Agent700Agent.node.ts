@@ -1,5 +1,4 @@
 import {
-	ApplicationError,
 	IDataObject,
 	IExecuteFunctions,
 	INodeExecutionData,
@@ -8,27 +7,6 @@ import {
 	INodeTypeDescription,
 	NodeApiError,
 } from 'n8n-workflow';
-
-async function loginWithAppPassword(
-	httpRequest: IExecuteFunctions['helpers']['httpRequest'],
-	baseUrl: string,
-	appPassword: string,
-): Promise<string> {
-	const res = await httpRequest({
-		method: 'POST',
-		url: `${baseUrl.replace(/\/$/, '')}/api/auth/app-login`,
-		body: { token: appPassword },
-		headers: {
-			'Content-Type': 'application/json',
-			'User-Agent': 'A700cli/1.0.0',
-		},
-	});
-	const accessToken = (res as { accessToken?: string })?.accessToken;
-	if (!accessToken) {
-		throw new ApplicationError('App login did not return accessToken');
-	}
-	return accessToken;
-}
 
 export class Agent700Agent implements INodeType {
 	description: INodeTypeDescription = {
@@ -120,13 +98,8 @@ export class Agent700Agent implements INodeType {
 		const items = this.getInputData();
 		const returnData: INodeExecutionData[] = [];
 
-		// Get credentials once per execution
 		const credentials = await this.getCredentials('agent700AppPasswordApi');
-		const baseUrl = credentials.baseUrl as string;
-		const appPassword = credentials.appPassword as string;
-
-		// Login once per execution
-		const accessToken = await loginWithAppPassword(this.helpers.httpRequest, baseUrl, appPassword);
+		const baseUrl = (credentials.baseUrl as string).replace(/\/$/, '');
 
 		const continueOnFail = this.continueOnFail();
 
@@ -153,12 +126,15 @@ export class Agent700Agent implements INodeType {
 					};
 					if (agentId) body.agentId = agentId;
 
-					const res = await this.helpers.httpRequest({
-						method: 'POST',
-						url: `${baseUrl.replace(/\/$/, '')}/api/chat`,
-						headers: { Authorization: `Bearer ${accessToken}` },
-						body,
-					});
+					const res = await this.helpers.httpRequestWithAuthentication.call(
+						this,
+						'agent700AppPasswordApi',
+						{
+							method: 'POST',
+							url: `${baseUrl}/api/chat`,
+							body,
+						},
+					);
 
 					// API schema (per MCP docs): { response, finish_reason?, scrubbed_message?, error? }
 					let out: IDataObject;

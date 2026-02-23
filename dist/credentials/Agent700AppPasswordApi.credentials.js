@@ -9,6 +9,16 @@ class Agent700AppPasswordApi {
         this.documentationUrl = 'https://docs.agent700.ai/integrations/n8n';
         this.properties = [
             {
+                displayName: 'Session Token',
+                name: 'sessionToken',
+                type: 'hidden',
+                typeOptions: {
+                    expirable: true,
+                    password: true,
+                },
+                default: '',
+            },
+            {
                 displayName: 'Base URL',
                 name: 'baseUrl',
                 type: 'string',
@@ -28,6 +38,14 @@ class Agent700AppPasswordApi {
                 required: true,
             },
         ];
+        this.authenticate = {
+            type: 'generic',
+            properties: {
+                headers: {
+                    Authorization: '=Bearer {{$credentials.sessionToken}}',
+                },
+            },
+        };
         this.test = {
             request: {
                 method: 'POST',
@@ -41,6 +59,19 @@ class Agent700AppPasswordApi {
                 },
             },
         };
+    }
+    async preAuthentication(credentials) {
+        const baseUrl = credentials.baseUrl.replace(/\/$/, '');
+        const { accessToken } = (await this.helpers.httpRequest({
+            method: 'POST',
+            url: `${baseUrl}/api/auth/app-login`,
+            body: { token: credentials.appPassword },
+            headers: {
+                'Content-Type': 'application/json',
+                'User-Agent': 'A700cli/1.0.0',
+            },
+        }));
+        return { sessionToken: accessToken };
     }
 }
 exports.Agent700AppPasswordApi = Agent700AppPasswordApi;

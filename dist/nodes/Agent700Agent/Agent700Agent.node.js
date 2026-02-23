@@ -2,22 +2,6 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Agent700Agent = void 0;
 const n8n_workflow_1 = require("n8n-workflow");
-async function loginWithAppPassword(httpRequest, baseUrl, appPassword) {
-    const res = await httpRequest({
-        method: 'POST',
-        url: `${baseUrl.replace(/\/$/, '')}/api/auth/app-login`,
-        body: { token: appPassword },
-        headers: {
-            'Content-Type': 'application/json',
-            'User-Agent': 'A700cli/1.0.0',
-        },
-    });
-    const accessToken = res === null || res === void 0 ? void 0 : res.accessToken;
-    if (!accessToken) {
-        throw new n8n_workflow_1.ApplicationError('App login did not return accessToken');
-    }
-    return accessToken;
-}
 class Agent700Agent {
     constructor() {
         this.description = {
@@ -105,9 +89,7 @@ class Agent700Agent {
         const items = this.getInputData();
         const returnData = [];
         const credentials = await this.getCredentials('agent700AppPasswordApi');
-        const baseUrl = credentials.baseUrl;
-        const appPassword = credentials.appPassword;
-        const accessToken = await loginWithAppPassword(this.helpers.httpRequest, baseUrl, appPassword);
+        const baseUrl = credentials.baseUrl.replace(/\/$/, '');
         const continueOnFail = this.continueOnFail();
         for (let i = 0; i < items.length; i++) {
             try {
@@ -128,10 +110,9 @@ class Agent700Agent {
                     };
                     if (agentId)
                         body.agentId = agentId;
-                    const res = await this.helpers.httpRequest({
+                    const res = await this.helpers.httpRequestWithAuthentication.call(this, 'agent700AppPasswordApi', {
                         method: 'POST',
-                        url: `${baseUrl.replace(/\/$/, '')}/api/chat`,
-                        headers: { Authorization: `Bearer ${accessToken}` },
+                        url: `${baseUrl}/api/chat`,
                         body,
                     });
                     let out;

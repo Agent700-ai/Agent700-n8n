@@ -24,10 +24,8 @@ describe('Agent700Agent', () => {
   });
 
   describe('execute', () => {
-    it('should send message successfully', async () => {
-      // Mock authentication and chat response
-      mockExecuteFunctions.helpers.httpRequest
-        .mockResolvedValueOnce({ accessToken: 'test-token' })
+    it('should send message successfully (AC3)', async () => {
+      mockExecuteFunctions.helpers.httpRequestWithAuthentication
         .mockResolvedValueOnce({
           response: 'Test response content',
           finish_reason: 'stop',
@@ -38,6 +36,34 @@ describe('Agent700Agent', () => {
       expect(result[0]).toHaveLength(1);
       expect(result[0][0].json.response).toBe('Test response content');
       expect(result[0][0].json.finish_reason).toBe('stop');
+    });
+
+    it('should call httpRequestWithAuthentication with credential name (FR5)', async () => {
+      mockExecuteFunctions.helpers.httpRequestWithAuthentication
+        .mockResolvedValueOnce({
+          response: 'Test response',
+          finish_reason: 'stop',
+        });
+
+      await Agent700Agent.prototype.execute.call(mockExecuteFunctions);
+
+      const call = mockExecuteFunctions.helpers.httpRequestWithAuthentication.mock.calls[0];
+      expect(call[0]).toBe('agent700AppPasswordApi');
+      expect(call[1].method).toBe('POST');
+      expect(call[1].url).toContain('/api/chat');
+    });
+
+    it('should not set Authorization header manually (FR4)', async () => {
+      mockExecuteFunctions.helpers.httpRequestWithAuthentication
+        .mockResolvedValueOnce({
+          response: 'Test response',
+          finish_reason: 'stop',
+        });
+
+      await Agent700Agent.prototype.execute.call(mockExecuteFunctions);
+
+      const call = mockExecuteFunctions.helpers.httpRequestWithAuthentication.mock.calls[0];
+      expect(call[1].headers?.Authorization).toBeUndefined();
     });
 
     it('should send message without agent ID', async () => {
@@ -52,8 +78,7 @@ describe('Agent700Agent', () => {
         return params[name];
       };
 
-      mockExecuteFunctions.helpers.httpRequest
-        .mockResolvedValueOnce({ accessToken: 'test-token' })
+      mockExecuteFunctions.helpers.httpRequestWithAuthentication
         .mockResolvedValueOnce({
           response: 'Test response',
           finish_reason: 'stop',
@@ -62,9 +87,8 @@ describe('Agent700Agent', () => {
       const result = await Agent700Agent.prototype.execute.call(mockExecuteFunctions);
 
       expect(result[0]).toHaveLength(1);
-      // Verify agentId was not included in body
-      const chatCall = mockExecuteFunctions.helpers.httpRequest.mock.calls[1];
-      expect(chatCall[0].body.agentId).toBeUndefined();
+      const chatCall = mockExecuteFunctions.helpers.httpRequestWithAuthentication.mock.calls[0];
+      expect(chatCall[1].body.agentId).toBeUndefined();
     });
 
     it('should handle simplify parameter false', async () => {
@@ -89,8 +113,7 @@ describe('Agent700Agent', () => {
         extra_field: 'extra',
       };
 
-      mockExecuteFunctions.helpers.httpRequest
-        .mockResolvedValueOnce({ accessToken: 'test-token' })
+      mockExecuteFunctions.helpers.httpRequestWithAuthentication
         .mockResolvedValueOnce(fullResponse);
 
       const result = await Agent700Agent.prototype.execute.call(mockExecuteFunctions);
@@ -110,8 +133,7 @@ describe('Agent700Agent', () => {
         extra_field: 'extra',
       };
 
-      mockExecuteFunctions.helpers.httpRequest
-        .mockResolvedValueOnce({ accessToken: 'test-token' })
+      mockExecuteFunctions.helpers.httpRequestWithAuthentication
         .mockResolvedValueOnce(fullResponse);
 
       const result = await Agent700Agent.prototype.execute.call(mockExecuteFunctions);
@@ -126,9 +148,7 @@ describe('Agent700Agent', () => {
     });
 
     it('should handle API errors with NodeApiError', async () => {
-      // Mock authentication
-      mockExecuteFunctions.helpers.httpRequest
-        .mockResolvedValueOnce({ accessToken: 'test-token' })
+      mockExecuteFunctions.helpers.httpRequestWithAuthentication
         .mockRejectedValueOnce(new Error('API Error'));
 
       await expect(
@@ -148,9 +168,6 @@ describe('Agent700Agent', () => {
         return params[name];
       };
 
-      mockExecuteFunctions.helpers.httpRequest
-        .mockResolvedValueOnce({ accessToken: 'test-token' });
-
       await expect(
         Agent700Agent.prototype.execute.call(mockExecuteFunctions)
       ).rejects.toThrow();
@@ -168,8 +185,7 @@ describe('Agent700Agent', () => {
         return params[name];
       };
 
-      mockExecuteFunctions.helpers.httpRequest
-        .mockResolvedValueOnce({ accessToken: 'test-token' })
+      mockExecuteFunctions.helpers.httpRequestWithAuthentication
         .mockResolvedValueOnce({
           response: 'Test response',
           finish_reason: 'stop',
@@ -178,8 +194,8 @@ describe('Agent700Agent', () => {
       const result = await Agent700Agent.prototype.execute.call(mockExecuteFunctions);
 
       expect(result[0]).toHaveLength(1);
-      const chatCall = mockExecuteFunctions.helpers.httpRequest.mock.calls[1];
-      expect(chatCall[0].body.agentId).toBe('selected-agent-id');
+      const chatCall = mockExecuteFunctions.helpers.httpRequestWithAuthentication.mock.calls[0];
+      expect(chatCall[1].body.agentId).toBe('selected-agent-id');
     });
 
     it('should process multiple input items', async () => {
@@ -200,8 +216,7 @@ describe('Agent700Agent', () => {
         return params[name];
       };
 
-      mockExecuteFunctions.helpers.httpRequest
-        .mockResolvedValueOnce({ accessToken: 'test-token' })
+      mockExecuteFunctions.helpers.httpRequestWithAuthentication
         .mockResolvedValueOnce({ response: 'Response 1', finish_reason: 'stop' })
         .mockResolvedValueOnce({ response: 'Response 2', finish_reason: 'stop' });
 
@@ -211,33 +226,16 @@ describe('Agent700Agent', () => {
     });
 
     it('should handle authentication failures gracefully', async () => {
-      mockExecuteFunctions.helpers.httpRequest.mockRejectedValueOnce(new Error('Authentication failed'));
+      mockExecuteFunctions.helpers.httpRequestWithAuthentication
+        .mockRejectedValueOnce(new Error('Authentication failed'));
 
       await expect(
         Agent700Agent.prototype.execute.call(mockExecuteFunctions)
       ).rejects.toThrow();
     });
 
-    it('should throw ApplicationError when auth response has no accessToken', async () => {
-      // Mock authentication returning response without accessToken
-      mockExecuteFunctions.helpers.httpRequest.mockResolvedValueOnce({});
-
-      await expect(
-        Agent700Agent.prototype.execute.call(mockExecuteFunctions)
-      ).rejects.toThrow('App login did not return accessToken');
-    });
-
-    it('should throw ApplicationError when auth response accessToken is null', async () => {
-      mockExecuteFunctions.helpers.httpRequest.mockResolvedValueOnce({ accessToken: null });
-
-      await expect(
-        Agent700Agent.prototype.execute.call(mockExecuteFunctions)
-      ).rejects.toThrow('App login did not return accessToken');
-    });
-
     it('should include tokens in simplified output when present', async () => {
-      mockExecuteFunctions.helpers.httpRequest
-        .mockResolvedValueOnce({ accessToken: 'test-token' })
+      mockExecuteFunctions.helpers.httpRequestWithAuthentication
         .mockResolvedValueOnce({
           response: 'Test response',
           finish_reason: 'stop',
@@ -252,8 +250,7 @@ describe('Agent700Agent', () => {
     });
 
     it('should handle null values in simplified output', async () => {
-      mockExecuteFunctions.helpers.httpRequest
-        .mockResolvedValueOnce({ accessToken: 'test-token' })
+      mockExecuteFunctions.helpers.httpRequestWithAuthentication
         .mockResolvedValueOnce({
           response: 'Test response',
         });
@@ -266,8 +263,7 @@ describe('Agent700Agent', () => {
     });
 
     it('should handle error in response', async () => {
-      mockExecuteFunctions.helpers.httpRequest
-        .mockResolvedValueOnce({ accessToken: 'test-token' })
+      mockExecuteFunctions.helpers.httpRequestWithAuthentication
         .mockResolvedValueOnce({
           response: null,
           error: 'API error message',
@@ -276,6 +272,18 @@ describe('Agent700Agent', () => {
       const result = await Agent700Agent.prototype.execute.call(mockExecuteFunctions);
 
       expect(result[0][0].json.error).toBe('API error message');
+    });
+
+    it('should not use httpRequest directly for API calls (FR4)', async () => {
+      mockExecuteFunctions.helpers.httpRequestWithAuthentication
+        .mockResolvedValueOnce({
+          response: 'Test response',
+          finish_reason: 'stop',
+        });
+
+      await Agent700Agent.prototype.execute.call(mockExecuteFunctions);
+
+      expect(mockExecuteFunctions.helpers.httpRequest).not.toHaveBeenCalled();
     });
   });
 });

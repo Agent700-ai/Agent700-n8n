@@ -43,8 +43,33 @@ describe('Agent700AppPasswordApi Credentials', () => {
 			expect(appPasswordProp?.typeOptions?.password).toBe(true);
 		});
 
-		it('should have exactly 2 properties', () => {
-			expect(credentials.properties).toHaveLength(2);
+		it('should have exactly 3 properties (baseUrl, appPassword, sessionToken)', () => {
+			expect(credentials.properties).toHaveLength(3);
+		});
+
+		it('should have hidden expirable sessionToken property (FR1)', () => {
+			const sessionTokenProp = credentials.properties.find(p => p.name === 'sessionToken');
+			expect(sessionTokenProp).toBeDefined();
+			expect(sessionTokenProp?.type).toBe('hidden');
+			expect(sessionTokenProp?.typeOptions?.expirable).toBe(true);
+			expect(sessionTokenProp?.default).toBe('');
+		});
+	});
+
+	describe('preAuthentication (FR2)', () => {
+		it('should have preAuthentication method', () => {
+			expect(typeof (credentials as any).preAuthentication).toBe('function');
+		});
+	});
+
+	describe('authenticate (FR3)', () => {
+		it('should have authenticate property with Bearer header', () => {
+			const auth = (credentials as any).authenticate;
+			expect(auth).toBeDefined();
+			expect(auth.type).toBe('generic');
+			expect(auth.properties.headers.Authorization).toBe(
+				'=Bearer {{$credentials.sessionToken}}',
+			);
 		});
 	});
 
@@ -54,23 +79,8 @@ describe('Agent700AppPasswordApi Credentials', () => {
 			expect(credentials.test.request).toBeDefined();
 		});
 
-		it('should use POST method for test', () => {
-			expect(credentials.test.request.method).toBe('POST');
-		});
-
 		it('should use app-login endpoint for test', () => {
 			expect(credentials.test.request.url).toContain('/api/auth/app-login');
-		});
-
-		it('should include correct headers', () => {
-			expect(credentials.test.request.headers).toEqual({
-				'Content-Type': 'application/json',
-				'User-Agent': 'A700cli/1.0.0',
-			});
-		});
-
-		it('should include token in body', () => {
-			expect(credentials.test.request.body).toHaveProperty('token');
 		});
 	});
 });

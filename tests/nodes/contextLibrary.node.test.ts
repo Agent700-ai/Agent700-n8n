@@ -22,15 +22,35 @@ describe('Agent700ContextLibrary', () => {
 
   describe('execute', () => {
     it('should get many entries', async () => {
-      // Mock authentication and list all
-      mockExecuteFunctions.helpers.httpRequest
-        .mockResolvedValueOnce({ accessToken: 'test-token' })
+      mockExecuteFunctions.helpers.httpRequestWithAuthentication
         .mockResolvedValueOnce({ key1: 'value1', key2: 'value2' });
 
       const result = await Agent700ContextLibrary.prototype.execute.call(mockExecuteFunctions);
 
       expect(result[0]).toHaveLength(1);
       expect(result[0][0].json).toEqual({ key1: 'value1', key2: 'value2' });
+    });
+
+    it('should call httpRequestWithAuthentication with credential name (FR5)', async () => {
+      mockExecuteFunctions.helpers.httpRequestWithAuthentication
+        .mockResolvedValueOnce({ key1: 'value1' });
+
+      await Agent700ContextLibrary.prototype.execute.call(mockExecuteFunctions);
+
+      const call = mockExecuteFunctions.helpers.httpRequestWithAuthentication.mock.calls[0];
+      expect(call[0]).toBe('agent700AppPasswordApi');
+      expect(call[1].method).toBe('GET');
+      expect(call[1].url).toContain('/api/alignment-data');
+    });
+
+    it('should not set Authorization header manually (FR4)', async () => {
+      mockExecuteFunctions.helpers.httpRequestWithAuthentication
+        .mockResolvedValueOnce({ key1: 'value1' });
+
+      await Agent700ContextLibrary.prototype.execute.call(mockExecuteFunctions);
+
+      const call = mockExecuteFunctions.helpers.httpRequestWithAuthentication.mock.calls[0];
+      expect(call[1].headers?.Authorization).toBeUndefined();
     });
 
     it('should get entry by key', async () => {
@@ -43,9 +63,7 @@ describe('Agent700ContextLibrary', () => {
         return params[name];
       };
 
-      // Mock authentication and get by key
-      mockExecuteFunctions.helpers.httpRequest
-        .mockResolvedValueOnce({ accessToken: 'test-token' })
+      mockExecuteFunctions.helpers.httpRequestWithAuthentication
         .mockResolvedValueOnce('test-value');
 
       const result = await Agent700ContextLibrary.prototype.execute.call(mockExecuteFunctions);
@@ -64,17 +82,15 @@ describe('Agent700ContextLibrary', () => {
         return params[name];
       };
 
-      // Mock authentication and create
-      mockExecuteFunctions.helpers.httpRequest
-        .mockResolvedValueOnce({ accessToken: 'test-token' })
+      mockExecuteFunctions.helpers.httpRequestWithAuthentication
         .mockResolvedValueOnce({ success: true });
 
       const result = await Agent700ContextLibrary.prototype.execute.call(mockExecuteFunctions);
 
       expect(result[0][0].json.success).toBe(true);
-      const createCall = mockExecuteFunctions.helpers.httpRequest.mock.calls[1];
-      expect(createCall[0].body.key).toBe('test-key');
-      expect(createCall[0].body.value).toEqual({ data: 'test-value' });
+      const createCall = mockExecuteFunctions.helpers.httpRequestWithAuthentication.mock.calls[0];
+      expect(createCall[1].body.key).toBe('test-key');
+      expect(createCall[1].body.value).toEqual({ data: 'test-value' });
     });
 
     it('should upsert entry', async () => {
@@ -88,9 +104,7 @@ describe('Agent700ContextLibrary', () => {
         return params[name];
       };
 
-      // Mock authentication and upsert
-      mockExecuteFunctions.helpers.httpRequest
-        .mockResolvedValueOnce({ accessToken: 'test-token' })
+      mockExecuteFunctions.helpers.httpRequestWithAuthentication
         .mockResolvedValueOnce({ success: true });
 
       const result = await Agent700ContextLibrary.prototype.execute.call(mockExecuteFunctions);
@@ -110,15 +124,14 @@ describe('Agent700ContextLibrary', () => {
         return params[name];
       };
 
-      mockExecuteFunctions.helpers.httpRequest
-        .mockResolvedValueOnce({ accessToken: 'test-token' })
+      mockExecuteFunctions.helpers.httpRequestWithAuthentication
         .mockResolvedValueOnce({ success: true });
 
       const result = await Agent700ContextLibrary.prototype.execute.call(mockExecuteFunctions);
 
       expect(result[0][0].json.success).toBe(true);
-      const updateCall = mockExecuteFunctions.helpers.httpRequest.mock.calls[1];
-      expect(updateCall[0].body.newKey).toBeUndefined();
+      const updateCall = mockExecuteFunctions.helpers.httpRequestWithAuthentication.mock.calls[0];
+      expect(updateCall[1].body.newKey).toBeUndefined();
     });
 
     it('should update entry with key renaming', async () => {
@@ -133,15 +146,14 @@ describe('Agent700ContextLibrary', () => {
         return params[name];
       };
 
-      mockExecuteFunctions.helpers.httpRequest
-        .mockResolvedValueOnce({ accessToken: 'test-token' })
+      mockExecuteFunctions.helpers.httpRequestWithAuthentication
         .mockResolvedValueOnce({ success: true });
 
       const result = await Agent700ContextLibrary.prototype.execute.call(mockExecuteFunctions);
 
       expect(result[0][0].json.success).toBe(true);
-      const updateCall = mockExecuteFunctions.helpers.httpRequest.mock.calls[1];
-      expect(updateCall[0].body.newKey).toBe('new-key');
+      const updateCall = mockExecuteFunctions.helpers.httpRequestWithAuthentication.mock.calls[0];
+      expect(updateCall[1].body.newKey).toBe('new-key');
     });
 
     it('should delete entry', async () => {
@@ -154,8 +166,7 @@ describe('Agent700ContextLibrary', () => {
         return params[name];
       };
 
-      mockExecuteFunctions.helpers.httpRequest
-        .mockResolvedValueOnce({ accessToken: 'test-token' })
+      mockExecuteFunctions.helpers.httpRequestWithAuthentication
         .mockResolvedValueOnce({});
 
       const result = await Agent700ContextLibrary.prototype.execute.call(mockExecuteFunctions);
@@ -174,8 +185,7 @@ describe('Agent700ContextLibrary', () => {
         return params[name];
       };
 
-      mockExecuteFunctions.helpers.httpRequest
-        .mockResolvedValueOnce({ accessToken: 'test-token' })
+      mockExecuteFunctions.helpers.httpRequestWithAuthentication
         .mockResolvedValueOnce({ test_key1: 'value1', test_key2: 'value2' });
 
       const result = await Agent700ContextLibrary.prototype.execute.call(mockExecuteFunctions);
@@ -195,8 +205,7 @@ describe('Agent700ContextLibrary', () => {
         return params[name];
       };
 
-      mockExecuteFunctions.helpers.httpRequest
-        .mockResolvedValueOnce({ accessToken: 'test-token' })
+      mockExecuteFunctions.helpers.httpRequestWithAuthentication
         .mockResolvedValueOnce([{ key: 'user_1', value: 'value1' }]);
 
       const result = await Agent700ContextLibrary.prototype.execute.call(mockExecuteFunctions);
@@ -206,29 +215,12 @@ describe('Agent700ContextLibrary', () => {
     });
 
     it('should handle errors', async () => {
-      // Mock authentication failure
-      mockExecuteFunctions.helpers.httpRequest.mockRejectedValueOnce(new Error('Auth failed'));
+      mockExecuteFunctions.helpers.httpRequestWithAuthentication
+        .mockRejectedValueOnce(new Error('API Error'));
 
       await expect(
         Agent700ContextLibrary.prototype.execute.call(mockExecuteFunctions)
       ).rejects.toThrow();
-    });
-
-    it('should throw ApplicationError when auth response has no accessToken', async () => {
-      // Mock authentication returning response without accessToken
-      mockExecuteFunctions.helpers.httpRequest.mockResolvedValueOnce({});
-
-      await expect(
-        Agent700ContextLibrary.prototype.execute.call(mockExecuteFunctions)
-      ).rejects.toThrow('App login did not return accessToken');
-    });
-
-    it('should throw ApplicationError when auth response accessToken is null', async () => {
-      mockExecuteFunctions.helpers.httpRequest.mockResolvedValueOnce({ accessToken: null });
-
-      await expect(
-        Agent700ContextLibrary.prototype.execute.call(mockExecuteFunctions)
-      ).rejects.toThrow('App login did not return accessToken');
     });
 
     it('should validate required key parameter for get', async () => {
@@ -240,9 +232,6 @@ describe('Agent700ContextLibrary', () => {
         };
         return params[name];
       };
-
-      mockExecuteFunctions.helpers.httpRequest
-        .mockResolvedValueOnce({ accessToken: 'test-token' });
 
       await expect(
         Agent700ContextLibrary.prototype.execute.call(mockExecuteFunctions)
@@ -258,9 +247,6 @@ describe('Agent700ContextLibrary', () => {
         };
         return params[name];
       };
-
-      mockExecuteFunctions.helpers.httpRequest
-        .mockResolvedValueOnce({ accessToken: 'test-token' });
 
       await expect(
         Agent700ContextLibrary.prototype.execute.call(mockExecuteFunctions)
@@ -278,9 +264,6 @@ describe('Agent700ContextLibrary', () => {
         return params[name];
       };
 
-      mockExecuteFunctions.helpers.httpRequest
-        .mockResolvedValueOnce({ accessToken: 'test-token' });
-
       await expect(
         Agent700ContextLibrary.prototype.execute.call(mockExecuteFunctions)
       ).rejects.toThrow();
@@ -295,9 +278,6 @@ describe('Agent700ContextLibrary', () => {
         };
         return params[name];
       };
-
-      mockExecuteFunctions.helpers.httpRequest
-        .mockResolvedValueOnce({ accessToken: 'test-token' });
 
       await expect(
         Agent700ContextLibrary.prototype.execute.call(mockExecuteFunctions)
@@ -315,9 +295,6 @@ describe('Agent700ContextLibrary', () => {
         return params[name];
       };
 
-      mockExecuteFunctions.helpers.httpRequest
-        .mockResolvedValueOnce({ accessToken: 'test-token' });
-
       await expect(
         Agent700ContextLibrary.prototype.execute.call(mockExecuteFunctions)
       ).rejects.toThrow();
@@ -333,15 +310,13 @@ describe('Agent700ContextLibrary', () => {
         return params[name];
       };
 
-      mockExecuteFunctions.helpers.httpRequest
-        .mockResolvedValueOnce({ accessToken: 'test-token' })
+      mockExecuteFunctions.helpers.httpRequestWithAuthentication
         .mockResolvedValueOnce('test-value');
 
       await Agent700ContextLibrary.prototype.execute.call(mockExecuteFunctions);
 
-      // Verify URL encoding in the request
-      const getCall = mockExecuteFunctions.helpers.httpRequest.mock.calls[1];
-      expect(getCall[0].url).toContain(encodeURIComponent('key with spaces & special chars'));
+      const getCall = mockExecuteFunctions.helpers.httpRequestWithAuthentication.mock.calls[0];
+      expect(getCall[1].url).toContain(encodeURIComponent('key with spaces & special chars'));
     });
 
     it('should process multiple input items', async () => {
@@ -359,8 +334,7 @@ describe('Agent700ContextLibrary', () => {
         return params[name];
       };
 
-      mockExecuteFunctions.helpers.httpRequest
-        .mockResolvedValueOnce({ accessToken: 'test-token' })
+      mockExecuteFunctions.helpers.httpRequestWithAuthentication
         .mockResolvedValueOnce({ key1: 'value1' })
         .mockResolvedValueOnce({ key2: 'value2' });
 
@@ -370,8 +344,7 @@ describe('Agent700ContextLibrary', () => {
     });
 
     it('should handle array response from getMany', async () => {
-      mockExecuteFunctions.helpers.httpRequest
-        .mockResolvedValueOnce({ accessToken: 'test-token' })
+      mockExecuteFunctions.helpers.httpRequestWithAuthentication
         .mockResolvedValueOnce([{ key: 'key1', value: 'value1' }, { key: 'key2', value: 'value2' }]);
 
       const result = await Agent700ContextLibrary.prototype.execute.call(mockExecuteFunctions);
@@ -392,8 +365,7 @@ describe('Agent700ContextLibrary', () => {
         return params[name];
       };
 
-      mockExecuteFunctions.helpers.httpRequest
-        .mockResolvedValueOnce({ accessToken: 'test-token' })
+      mockExecuteFunctions.helpers.httpRequestWithAuthentication
         .mockResolvedValueOnce([
           { key: 'test_1', value: 'value1' },
           { key: 'test_2', value: 'value2' },
@@ -402,6 +374,15 @@ describe('Agent700ContextLibrary', () => {
       const result = await Agent700ContextLibrary.prototype.execute.call(mockExecuteFunctions);
 
       expect(result[0]).toHaveLength(2);
+    });
+
+    it('should not use httpRequest directly for API calls (FR4)', async () => {
+      mockExecuteFunctions.helpers.httpRequestWithAuthentication
+        .mockResolvedValueOnce({ key1: 'value1' });
+
+      await Agent700ContextLibrary.prototype.execute.call(mockExecuteFunctions);
+
+      expect(mockExecuteFunctions.helpers.httpRequest).not.toHaveBeenCalled();
     });
   });
 

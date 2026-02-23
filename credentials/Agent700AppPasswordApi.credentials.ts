@@ -1,6 +1,9 @@
 import type {
+	IAuthenticateGeneric,
+	ICredentialDataDecryptedObject,
 	ICredentialTestRequest,
 	ICredentialType,
+	IHttpRequestHelper,
 	INodeProperties,
 	Icon,
 } from 'n8n-workflow';
@@ -11,6 +14,16 @@ export class Agent700AppPasswordApi implements ICredentialType {
 	icon: Icon = 'file:../nodes/Agent700Agent/Agent700.svg';
 	documentationUrl = 'https://docs.agent700.ai/integrations/n8n';
 	properties: INodeProperties[] = [
+		{
+			displayName: 'Session Token',
+			name: 'sessionToken',
+			type: 'hidden',
+			typeOptions: {
+				expirable: true,
+				password: true,
+			},
+			default: '',
+		},
 		{
 			displayName: 'Base URL',
 			name: 'baseUrl',
@@ -31,6 +44,29 @@ export class Agent700AppPasswordApi implements ICredentialType {
 			required: true,
 		},
 	];
+
+	async preAuthentication(this: IHttpRequestHelper, credentials: ICredentialDataDecryptedObject) {
+		const baseUrl = (credentials.baseUrl as string).replace(/\/$/, '');
+		const { accessToken } = (await this.helpers.httpRequest({
+			method: 'POST',
+			url: `${baseUrl}/api/auth/app-login`,
+			body: { token: credentials.appPassword },
+			headers: {
+				'Content-Type': 'application/json',
+				'User-Agent': 'A700cli/1.0.0',
+			},
+		})) as { accessToken: string };
+		return { sessionToken: accessToken };
+	}
+
+	authenticate: IAuthenticateGeneric = {
+		type: 'generic',
+		properties: {
+			headers: {
+				Authorization: '=Bearer {{$credentials.sessionToken}}',
+			},
+		},
+	};
 
 	test: ICredentialTestRequest = {
 		request: {

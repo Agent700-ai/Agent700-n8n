@@ -1,5 +1,4 @@
 import {
-	ApplicationError,
 	IDataObject,
 	IExecuteFunctions,
 	IHttpRequestMethods,
@@ -8,25 +7,6 @@ import {
 	INodeTypeDescription,
 	NodeApiError,
 } from 'n8n-workflow';
-
-async function loginWithAppPassword(
-	httpRequest: IExecuteFunctions['helpers']['httpRequest'],
-	baseUrl: string,
-	appPassword: string,
-): Promise<string> {
-	const res = await httpRequest({
-		method: 'POST',
-		url: `${baseUrl.replace(/\/$/, '')}/api/auth/app-login`,
-		body: { token: appPassword },
-		headers: {
-			'Content-Type': 'application/json',
-			'User-Agent': 'A700cli/1.0.0',
-		},
-	});
-	const accessToken = (res as { accessToken?: string })?.accessToken;
-	if (!accessToken) throw new ApplicationError('App login did not return accessToken');
-	return accessToken;
-}
 
 export class Agent700ContextLibrary implements INodeType {
 	description: INodeTypeDescription = {
@@ -177,20 +157,19 @@ export class Agent700ContextLibrary implements INodeType {
 		const items = this.getInputData();
 		const returnData: INodeExecutionData[] = [];
 
-		// Get credentials once per execution
 		const credentials = await this.getCredentials('agent700AppPasswordApi');
-		const baseUrl = credentials.baseUrl as string;
-		const appPassword = credentials.appPassword as string;
-
-		const accessToken = await loginWithAppPassword(this.helpers.httpRequest, baseUrl, appPassword);
+		const baseUrl = (credentials.baseUrl as string).replace(/\/$/, '');
 
 		const api = async (method: IHttpRequestMethods, path: string, body?: IDataObject) => {
-			return this.helpers.httpRequest({
-				method,
-				url: `${baseUrl.replace(/\/$/, '')}${path}`,
-				headers: { Authorization: `Bearer ${accessToken}` },
-				body,
-			});
+			return this.helpers.httpRequestWithAuthentication.call(
+				this,
+				'agent700AppPasswordApi',
+				{
+					method,
+					url: `${baseUrl}${path}`,
+					body,
+				},
+			);
 		};
 
 		const continueOnFail = this.continueOnFail();
